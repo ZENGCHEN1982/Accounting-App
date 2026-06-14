@@ -456,8 +456,8 @@ export function MoneyLiteApp() {
   }
 
   return (
-    <main className="min-h-svh text-ink sm:px-5 sm:py-8 md:px-10">
-      <section className="mx-auto flex min-h-svh max-w-6xl justify-center sm:min-h-0">
+    <main className="min-h-svh text-ink sm:flex sm:items-center sm:justify-center sm:px-5 sm:py-8 md:px-10">
+      <section className="mx-auto flex min-h-svh max-w-6xl justify-center sm:min-h-0 sm:w-full">
         <PhoneFrame>
           {tab === "login" && <LoginScreen loading={loading} onAuth={handleAuth} onDemo={handleDemo} />}
           {tab === "home" && <HomeScreen summary={summary} transactions={views.slice(0, 4)} user={user} budgetStatus={budgetStatus} onAdd={openCreator} onEdit={openEditor} />}

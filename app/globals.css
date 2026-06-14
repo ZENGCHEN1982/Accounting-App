@@ -42,7 +42,7 @@ input {
     overflow: hidden;
   }
 
-  main.min-h-screen {
+  main {
     min-height: 100svh !important;
     padding: 0 !important;
   }
