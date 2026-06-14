@@ -456,8 +456,8 @@ export function MoneyLiteApp() {
   }
 
   return (
-    <main className="min-h-screen px-5 py-8 text-ink md:px-10">
-      <section className="mx-auto flex max-w-6xl justify-center">
+    <main className="min-h-svh text-ink sm:px-5 sm:py-8 md:px-10">
+      <section className="mx-auto flex min-h-svh max-w-6xl justify-center sm:min-h-0">
         <PhoneFrame>
           {tab === "login" && <LoginScreen loading={loading} onAuth={handleAuth} onDemo={handleDemo} />}
           {tab === "home" && <HomeScreen summary={summary} transactions={views.slice(0, 4)} user={user} budgetStatus={budgetStatus} onAdd={openCreator} onEdit={openEditor} />}
@@ -499,7 +499,7 @@ export function MoneyLiteApp() {
 
 function PhoneFrame({ children }: { children: React.ReactNode }) {
   return (
-    <section className="relative mx-auto h-[844px] w-full max-w-[390px] overflow-hidden rounded-[34px] bg-paper shadow-soft ring-1 ring-black/5">
+    <section className="relative h-svh w-full overflow-hidden bg-paper sm:h-[calc(100svh-4rem)] sm:max-h-[844px] sm:min-h-[680px] sm:max-w-[390px] sm:rounded-[34px] sm:shadow-soft sm:ring-1 sm:ring-black/5">
       {children}
     </section>
   );
@@ -575,7 +575,7 @@ function HomeScreen({
   onEdit: (transaction: TransactionView) => void;
 }) {
   return (
-    <div className="relative h-full">
+    <div className="relative h-full overflow-y-auto pb-28">
       <TopBar title={`早上好，${user?.displayName ?? "Chen"}`} subtitle="当前月份 · 预算健康" action={<Settings className="size-5" />} />
       <section className="mx-6 rounded-[30px] bg-ink p-5 text-white shadow-card">
         <p className="text-xs text-white/70">月度结余</p>
@@ -644,7 +644,7 @@ function TransactionFormScreen({
   }
 
   return (
-    <div className="relative h-full">
+    <div className="relative h-full overflow-y-auto pb-28">
       <TopBar title={editingTransaction ? "编辑账单" : "记一笔"} subtitle={editingTransaction ? "修改金额、分类、日期或备注" : "快速保存一条收支记录"} action={<button className="text-xl font-bold" onClick={onCancel}>×</button>} />
       <div className="mx-6 mt-3 flex rounded-full bg-white p-1.5 shadow-card">
         <button className={segClass(type === "income")} onClick={() => changeType("income")}>
@@ -694,7 +694,7 @@ function BillsScreen({ summary, transactions, onEdit }: { summary: ReturnType<ty
   const groups = groupByDate(filteredTransactions);
 
   return (
-    <div className="relative h-full">
+    <div className="relative h-full overflow-y-auto pb-28">
       <TopBar title="账单" subtitle="筛选、搜索、编辑所有记录" action={<Search className="size-5" />} />
       <div className="mx-6 mt-3 flex gap-2">
         <Chip active={filter === "all"} onClick={() => setFilter("all")}>全部</Chip>
@@ -740,7 +740,7 @@ function BillsScreen({ summary, transactions, onEdit }: { summary: ReturnType<ty
 function StatsScreen({ totals, trend }: { totals: Array<{ name: string; value: number; ratio: number }>; trend: MonthlyTrendPoint[] }) {
   const latestBalance = trend.at(-1)?.balance ?? 0;
   return (
-    <div className="relative h-full">
+    <div className="relative h-full overflow-y-auto pb-28">
       <TopBar title="统计" subtitle="看懂当前月份钱流向" action={<ArrowUpRight className="size-5" />} />
       <Card className="mx-6 mt-3">
         <div className="flex items-center justify-between">
@@ -843,7 +843,7 @@ function ProfileScreen({
   }
 
   return (
-    <div className="relative h-full">
+    <div className="relative h-full overflow-y-auto pb-28">
       <TopBar title="我的" subtitle="分类、预算和账号设置" action={<CircleUserRound className="size-5" />} />
       <Card className="mx-6 mt-3">
         <div className="flex items-center justify-between gap-3">
@@ -1065,7 +1065,7 @@ function BottomNav({ active, onChange }: { active: Tab; onChange: (tab: Tab) => 
   ];
 
   return (
-    <nav className="absolute bottom-9 left-6 right-6 flex h-16 items-center justify-between rounded-full bg-white px-2 shadow-card">
+    <nav className="absolute bottom-[calc(1rem+env(safe-area-inset-bottom))] left-6 right-6 flex h-16 items-center justify-between rounded-full bg-white px-2 shadow-card sm:bottom-9">
       {items.map((item) => {
         const Icon = item.icon;
         const isActive = item.value === active;
