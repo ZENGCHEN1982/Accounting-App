@@ -71,6 +71,7 @@ export function MoneyLiteApp() {
   const summary = useMemo(() => summarize(monthTransactions), [monthTransactions]);
   const totals = useMemo(() => categoryTotals(views), [views]);
   const budgetStatus = useMemo(() => getBudgetStatus(summary.expense, monthlyBudget), [monthlyBudget, summary.expense]);
+  const canShowAccountData = Boolean(user);
 
   useEffect(() => {
     let cancelled = false;
@@ -539,6 +540,7 @@ export function MoneyLiteApp() {
           {tab !== "login" && <BottomNav active={tab} onChange={setTab} />}
         </PhoneFrame>
 
+        {canShowAccountData && (
         <aside className="space-y-4">
           <Card>
             <div className="flex items-center justify-between gap-3">
@@ -585,6 +587,7 @@ export function MoneyLiteApp() {
             ))}
           </Card>
         </aside>
+        )}
       </section>
     </main>
   );
