@@ -49,6 +49,12 @@ type BudgetStatus = {
   description: string;
   tone: "safe" | "warning" | "danger";
 };
+type MonthlyTrendPoint = {
+  month: string;
+  label: string;
+  balance: number;
+  height: number;
+};
 
 export function MoneyLiteApp() {
   const [tab, setTab] = useState<Tab>("login");
@@ -71,6 +77,7 @@ export function MoneyLiteApp() {
   const summary = useMemo(() => summarize(monthTransactions), [monthTransactions]);
   const totals = useMemo(() => categoryTotals(views), [views]);
   const budgetStatus = useMemo(() => getBudgetStatus(summary.expense, monthlyBudget), [monthlyBudget, summary.expense]);
+  const monthlyTrend = useMemo(() => buildMonthlyTrend(transactions, selectedMonth), [selectedMonth, transactions]);
 
   useEffect(() => {
     let cancelled = false;
@@ -469,7 +476,7 @@ export function MoneyLiteApp() {
             />
           )}
           {tab === "bills" && <BillsScreen summary={summary} transactions={views} onEdit={openEditor} />}
-          {tab === "stats" && <StatsScreen totals={totals} />}
+          {tab === "stats" && <StatsScreen totals={totals} trend={monthlyTrend} />}
           {tab === "profile" && (
             <ProfileScreen
               user={user}
@@ -730,25 +737,29 @@ function BillsScreen({ summary, transactions, onEdit }: { summary: ReturnType<ty
   );
 }
 
-function StatsScreen({ totals }: { totals: Array<{ name: string; value: number; ratio: number }> }) {
-  const values = [40, 68, 54, 86, 63, 98];
-
+function StatsScreen({ totals, trend }: { totals: Array<{ name: string; value: number; ratio: number }>; trend: MonthlyTrendPoint[] }) {
+  const latestBalance = trend.at(-1)?.balance ?? 0;
   return (
     <div className="relative h-full">
       <TopBar title="统计" subtitle="看懂当前月份钱流向" action={<ArrowUpRight className="size-5" />} />
       <Card className="mx-6 mt-3">
         <div className="flex items-center justify-between">
           <h3 className="font-bold">近 6 个月结余趋势</h3>
-          <span className="text-sm font-bold text-brand">+18%</span>
+          <span className={clsx("text-sm font-bold", latestBalance >= 0 ? "text-ink" : "text-brand")}>{currency(latestBalance)}</span>
         </div>
         <div className="mt-4 flex h-[118px] items-end justify-between rounded-[22px] bg-soft px-6 pb-5">
-          {values.map((value, index) => (
-            <div key={`${value}-${index}`} className={clsx("w-6 rounded-full", index === values.length - 1 ? "bg-brand" : "bg-ink")} style={{ height: value }} />
+          {trend.map((item, index) => (
+            <div
+              key={item.month}
+              className={clsx("w-6 rounded-full", item.balance === 0 ? "bg-line" : index === trend.length - 1 ? "bg-brand" : "bg-ink")}
+              style={{ height: item.height }}
+              title={`${item.label} ${currency(item.balance)}`}
+            />
           ))}
         </div>
         <div className="mt-3 flex justify-between text-[10px] text-muted">
-          {["1月", "2月", "3月", "4月", "5月", "6月"].map((month) => (
-            <span key={month}>{month}</span>
+          {trend.map((item) => (
+            <span key={item.month}>{item.label}</span>
           ))}
         </div>
       </Card>
@@ -1108,6 +1119,30 @@ function persistDemoState(categories: Category[], transactions: Transaction[], m
 function clearDemoState() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(demoStorageKey);
+}
+
+function buildMonthlyTrend(transactions: Transaction[], selectedMonth: string): MonthlyTrendPoint[] {
+  const [year, month] = selectedMonth.split("-").map(Number);
+  const baseDate = new Date(year, month - 1, 1);
+  const points = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(baseDate.getFullYear(), baseDate.getMonth() - (5 - index), 1);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const monthlyTransactions = transactions.filter((transaction) => transaction.transaction_date.startsWith(monthKey));
+    const balance = monthlyTransactions.reduce((total, transaction) => total + (transaction.type === "income" ? transaction.amount : -transaction.amount), 0);
+
+    return {
+      month: monthKey,
+      label: `${date.getMonth() + 1}月`,
+      balance,
+      height: 10
+    };
+  });
+  const maxAbsBalance = Math.max(...points.map((point) => Math.abs(point.balance)), 0);
+
+  return points.map((point) => ({
+    ...point,
+    height: point.balance === 0 || maxAbsBalance === 0 ? 10 : Math.max(18, Math.round((Math.abs(point.balance) / maxAbsBalance) * 98))
+  }));
 }
 
 function getBudgetStatus(expense: number, budget: number): BudgetStatus {
