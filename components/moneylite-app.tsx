@@ -450,33 +450,7 @@ export function MoneyLiteApp() {
 
   return (
     <main className="min-h-screen px-5 py-8 text-ink md:px-10">
-      <section className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[430px_1fr] lg:items-start">
-        <div>
-          <p className="mb-2 text-sm font-semibold text-brand">MoneyLite MVP</p>
-          <h1 className="text-3xl font-bold tracking-tight md:text-5xl">小账本</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted md:text-base">
-            现在是单屏真实 App 交互版。底部导航、Demo 登录、记一笔和统计刷新都可以点击使用。
-          </p>
-        </div>
-
-        <div className="rounded-[28px] bg-white p-5 shadow-card">
-          <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-bold">{user ? user.displayName : "未登录"}</p>
-            <p className="mt-1 text-sm leading-6 text-muted">{booting ? "正在恢复数据..." : message}</p>
-          </div>
-            {user ? (
-              <button className="rounded-full bg-ink px-4 py-2 text-sm font-bold text-white" onClick={handleLogout}>
-                退出
-              </button>
-            ) : (
-              <button className="rounded-full bg-brand px-4 py-2 text-sm font-bold text-white" onClick={handleDemo}>
-                体验 Demo
-              </button>
-            )}
-          </div>
-        </div>
-
+      <section className="mx-auto flex max-w-6xl justify-center">
         <PhoneFrame>
           {tab === "login" && <LoginScreen loading={loading} onAuth={handleAuth} onDemo={handleDemo} />}
           {tab === "home" && <HomeScreen summary={summary} transactions={views.slice(0, 4)} user={user} budgetStatus={budgetStatus} onAdd={openCreator} onEdit={openEditor} />}
@@ -506,6 +480,7 @@ export function MoneyLiteApp() {
               onCreateCategory={handleCreateCategory}
               onUpdateCategory={handleUpdateCategory}
               onDeleteCategory={handleDeleteCategory}
+              onLogout={handleLogout}
             />
           )}
           {tab !== "login" && <BottomNav active={tab} onChange={setTab} />}
@@ -797,7 +772,8 @@ function ProfileScreen({
   onBudgetChange,
   onCreateCategory,
   onUpdateCategory,
-  onDeleteCategory
+  onDeleteCategory,
+  onLogout
 }: {
   user: AppUser | null;
   categories: Category[];
@@ -807,6 +783,7 @@ function ProfileScreen({
   onCreateCategory: (input: { name: string; type: TransactionType; icon: string }) => void;
   onUpdateCategory: (input: { id: string; name: string; type: TransactionType; icon: string }) => void;
   onDeleteCategory: (id: string) => void;
+  onLogout: () => void;
 }) {
   const budgetRatio = monthlyBudget > 0 ? Math.min(100, Math.round((summary.expense / monthlyBudget) * 100)) : 100;
   const remaining = Math.max(0, monthlyBudget - summary.expense);
@@ -858,12 +835,17 @@ function ProfileScreen({
     <div className="relative h-full">
       <TopBar title="我的" subtitle="分类、预算和账号设置" action={<CircleUserRound className="size-5" />} />
       <Card className="mx-6 mt-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
           <div className="grid size-14 place-items-center rounded-full bg-ink text-2xl font-bold text-white">{user?.displayName.slice(0, 1).toUpperCase() ?? "M"}</div>
-          <div>
+          <div className="min-w-0">
             <h3 className="font-bold">{user?.displayName ?? "未登录用户"}</h3>
             <p className="mt-1 text-xs text-muted">{user?.email ?? "使用 Demo 或 Supabase 登录"}</p>
           </div>
+          </div>
+          <button className="shrink-0 rounded-full bg-ink px-4 py-2 text-xs font-bold text-white" onClick={onLogout}>
+            退出
+          </button>
         </div>
       </Card>
       <Card className="mx-6 mt-4">
