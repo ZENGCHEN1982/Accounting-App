@@ -71,7 +71,6 @@ export function MoneyLiteApp() {
   const summary = useMemo(() => summarize(monthTransactions), [monthTransactions]);
   const totals = useMemo(() => categoryTotals(views), [views]);
   const budgetStatus = useMemo(() => getBudgetStatus(summary.expense, monthlyBudget), [monthlyBudget, summary.expense]);
-  const canShowAccountData = Boolean(user);
 
   useEffect(() => {
     let cancelled = false;
@@ -438,34 +437,6 @@ export function MoneyLiteApp() {
     }
   }
 
-  function handleExportCsv() {
-    const csv = buildTransactionsCsv(views);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `moneylite-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    setMessage(`已导出 ${selectedMonth} 的 CSV 文件。`);
-  }
-
-  function handleResetDemo() {
-    if (user?.id !== demoUser.id) {
-      setMessage("只有 Demo 模式可以一键重置；真实账号请逐条编辑或删除。");
-      return;
-    }
-
-    setCategories(demoCategories);
-    setTransactions(demoTransactions);
-    setMonthlyBudget(defaultMonthlyBudget);
-    persistDemoState(demoCategories, demoTransactions, defaultMonthlyBudget);
-    setMessage("Demo 数据已恢复到初始状态。");
-    setTab("home");
-  }
-
   function openEditor(transaction: TransactionView) {
     setEditingTransaction(transaction);
     setTab("add");
@@ -539,55 +510,6 @@ export function MoneyLiteApp() {
           )}
           {tab !== "login" && <BottomNav active={tab} onChange={setTab} />}
         </PhoneFrame>
-
-        {canShowAccountData && (
-        <aside className="space-y-4">
-          <Card>
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm text-muted">当前月份</p>
-              <input
-                className="h-10 rounded-full border border-line bg-white px-3 text-sm font-bold outline-none"
-                type="month"
-                value={selectedMonth}
-                onChange={(event) => setSelectedMonth(event.target.value)}
-              />
-            </div>
-            <p className="mt-4 text-sm text-muted">月度结余</p>
-            <p className="mt-2 text-4xl font-bold">{currency(summary.balance)}</p>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <MetricCard label="收入" value={currency(summary.income)} />
-              <MetricCard label="支出" value={currency(summary.expense)} danger />
-            </div>
-            <div className="mt-4 rounded-[20px] bg-soft p-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-bold">{budgetStatus.label}</span>
-                <span className={clsx("font-bold", budgetStatus.tone === "safe" ? "text-ink" : "text-brand")}>{currency(Math.max(0, monthlyBudget - summary.expense))}</span>
-              </div>
-              <p className="mt-1 text-xs text-muted">{budgetStatus.description} · 当前预算 {currency(monthlyBudget)}</p>
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <button className="h-11 rounded-full bg-ink text-sm font-bold text-white" onClick={handleExportCsv}>
-                导出 CSV
-              </button>
-              <button className="h-11 rounded-full border border-line bg-white text-sm font-bold text-ink" onClick={handleResetDemo}>
-                重置 Demo
-              </button>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="font-bold">最近账单</h2>
-              <button className="text-sm font-bold text-brand" onClick={() => setTab("bills")}>
-                查看
-              </button>
-            </div>
-            {views.slice(0, 5).map((item) => (
-              <TransactionRow key={item.id} item={item} onClick={() => openEditor(item)} />
-            ))}
-          </Card>
-        </aside>
-        )}
       </section>
     </main>
   );
@@ -1238,23 +1160,4 @@ function getBudgetStatus(expense: number, budget: number): BudgetStatus {
     description: `预算已使用 ${Math.round(ratio * 100)}%，节奏不错`,
     tone: "safe"
   };
-}
-
-function buildTransactionsCsv(transactions: TransactionView[]) {
-  const header = ["日期", "类型", "分类", "备注", "金额", "创建时间"];
-  const rows = transactions.map((transaction) => [
-    transaction.transaction_date,
-    transaction.type === "income" ? "收入" : "支出",
-    transaction.category?.name ?? "其他",
-    transaction.note ?? "",
-    String(transaction.amount),
-    transaction.created_at
-  ]);
-
-  return [header, ...rows].map((row) => row.map(escapeCsvCell).join(",")).join("\n");
-}
-
-function escapeCsvCell(value: string) {
-  const normalized = value.replaceAll("\"", "\"\"");
-  return /[",\n\r]/.test(normalized) ? `"${normalized}"` : normalized;
 }
