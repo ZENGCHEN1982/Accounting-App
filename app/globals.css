@@ -34,3 +34,38 @@ input {
   background: #e31f1f;
   color: white;
 }
+
+@media (max-width: 640px) {
+  html,
+  body {
+    min-height: 100%;
+    overflow: hidden;
+  }
+
+  main.min-h-screen {
+    min-height: 100svh !important;
+    padding: 0 !important;
+  }
+
+  main > section.mx-auto {
+    min-height: 100svh;
+    max-width: none;
+  }
+
+  main > section.mx-auto > section.relative.mx-auto {
+    width: 100%;
+    max-width: none;
+    height: 100svh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  main > section.mx-auto > section.relative.mx-auto > div.relative.h-full {
+    overflow-y: auto;
+    padding-bottom: 7rem;
+  }
+
+  nav.absolute.bottom-9 {
+    bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
+  }
+}
